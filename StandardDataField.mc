@@ -41,8 +41,10 @@ class StandardDataField extends WatchUi.DataField {
 		System.println("increasing value font by " + bigger);
 		_value_font += bigger;
 
-		_value_y = dc.getHeight() - Graphics.getFontAscent(_value_font) - PAD
-			- (max_value_height - Graphics.getFontHeight(_value_font)) / 2; // shift up to center in free space
+		_value_y = dc.getHeight() - Graphics.getFontAscent(_value_font) - PAD;
+		if (max_value_height > Graphics.getFontHeight(_value_font)) {
+			_value_y -= (max_value_height - Graphics.getFontHeight(_value_font)) / 2; // shift up to center in free space
+		}
 		return true;
 	}
 
