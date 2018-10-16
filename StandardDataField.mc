@@ -21,7 +21,7 @@ class StandardDataField extends WatchUi.DataField {
 	}
 
 	function onLayout(dc) {
-		System.println("onLayout");
+		System.println("onLayout " + dc.getWidth() + "x" + dc.getHeight());
 		DataField.onLayout(dc);
 		_value_x = dc.getWidth() / 2;
 		_label_x = _value_x;
@@ -47,6 +47,7 @@ class StandardDataField extends WatchUi.DataField {
 	}
 
 	function onUpdate(dc) {
+		System.println("onUpdate " + dc.getWidth() + "x" + dc.getHeight());
 		var bgc = getBackgroundColor();
 		var fgc = Graphics.COLOR_BLACK;
 		if (bgc == Graphics.COLOR_BLACK) {
@@ -57,6 +58,7 @@ class StandardDataField extends WatchUi.DataField {
 		dc.clear();
 		dc.drawText(_value_x, _value_y, _value_font, value, Graphics.TEXT_JUSTIFY_CENTER);
 		dc.drawText(_label_x, _label_y, _label_font, label, Graphics.TEXT_JUSTIFY_CENTER);
+
 		return true;
 	}
 
