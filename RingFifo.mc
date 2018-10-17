@@ -12,6 +12,10 @@ class RingFifo {
 		_buf = new[len];
 		_len = len;
 		_i = 0;
+		reset(val);
+	}
+
+	function reset(val) {
 		for (var i = 0; i < _len; i++) {
 			_buf[i] = val;
 		}
@@ -71,6 +75,28 @@ function testat(logger) {
 	}
 	for (var i = 0; i < -(len * 5); i--) {
 		Test.assertEqual(hist.at(i), (len-i) % len);
+	}
+	return true;
+}
+
+(:test)
+function testindex(logger) {
+	logger.debug("testindex");
+	var len = 300;
+	var hist = new RingFifo(len, 0);
+	for (var i = 0; i < 10; i++) {
+		var r = hist.push_pop(i);
+		Test.assertEqual(r, 0);
+		Test.assertEqual(0, hist.at(0));
+		Test.assertEqual(i, hist.at(-1));
+	}
+	for (var i = -1; i > -15; i--) {
+		logger.debug(hist.at(i));
+		if (i >= -10) {
+			Test.assertEqual(hist.at(i), 10 + i);
+		} else {
+			Test.assertEqual(hist.at(i), 0);
+		}
 	}
 	return true;
 }

@@ -1,3 +1,5 @@
+using Toybox.Test;
+
 module DataFieldUtils {
 class AvgFilter {
 	/* Recursive moving average filter.
@@ -12,17 +14,16 @@ class AvgFilter {
 		if (_N == 1) {
 			return;
 		}
-		_fifo = new [_N];
-		reset(val);
+		_fifo = new RingFifo(_N, val);
+  		// initialize the accumulator
+  		_y = _N * val;
 	}
 
 	function reset(val) {
 		if (_N == 1) {
 			return;
 		}
-		for(var i = 0; i < _N; i++) {
-		  _fifo[i] = val;
-  		}
+		_fifo.reset(val);
   		// initialize the accumulator
   		_y = _N * val;
 	}
@@ -31,13 +32,25 @@ class AvgFilter {
 		if (_N == 1)  {
 			return x * _gain;
 		}
-    	_y += x - _fifo[0];
-	   for (var i = 0; i < _N - 1; i++) {
-    	_fifo[i] = _fifo[i+1];
-    	}
-    	_fifo[_N - 1] = x;
+    	_y += x - _fifo.push_pop(x);
     	return _y * _gain;
 	}
 
+}
+
+(:test)
+function filtertest(logger) {
+	var f = new AvgFilter(5, 0, 1);
+	for (var x = 0; x < 5; x++) {
+		var v = f.push_back(5);
+		logger.debug(v);
+		Test.assert(v == (x+1) * 5);
+	}
+	for (var x = 0; x < 5; x++) {
+		var v = f.push_back(5);
+		logger.debug(v);
+		Test.assert(v == 5 * 5);
+	}
+	return true;
 }
 }
