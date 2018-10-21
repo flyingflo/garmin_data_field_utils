@@ -34,8 +34,9 @@ class GraphDataField extends StandardDataField {
 //		_scale_x = false;
 //
 		fetchSettings();
-
-		_histlen = System.getDeviceSettings().screenWidth;
+		if (_histlen == null) {
+			_histlen = System.getDeviceSettings().screenWidth;
+		}
 		System.println("GraphDataField init with " + _histlen);
 		_hist = new RingFifo(_histlen, -_y_min);	// we use a fixed offset
 	}
