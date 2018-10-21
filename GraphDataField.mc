@@ -35,6 +35,8 @@ class GraphDataField extends StandardDataField {
 //
 		fetchSettings();
 
+		_histlen = System.getDeviceSettings().screenWidth;
+		System.println("GraphDataField init with " + _histlen);
 		_hist = new RingFifo(_histlen, -_y_min);	// we use a fixed offset
 	}
 
@@ -113,8 +115,10 @@ class GraphDataField extends StandardDataField {
 		dc.clear();
 		var dcbm = dc; //bm.getDc();
 		dcbm.setPenWidth(1);
+
 		_lcol = bgc;
 		var lcolnext;
+
 		for (var xg = 0; xg < w; xg+= 1) {
 			if (_scale_x) {			// scale to fit field size
 				y = interp(xg);
