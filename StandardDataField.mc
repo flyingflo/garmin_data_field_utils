@@ -4,6 +4,7 @@ module DataFieldUtils {
 class StandardDataField extends WatchUi.DataField {
 	var value = "";
 	var label = "";
+	var _ref_value = "000";		// reference for value width
 
 	const _value_font_smallest = Graphics.FONT_SYSTEM_NUMBER_MILD;
 	const _value_font_biggest = Graphics.FONT_SYSTEM_NUMBER_THAI_HOT;
@@ -13,8 +14,9 @@ class StandardDataField extends WatchUi.DataField {
 	var _value_y;
 	var _label_x;
 	var _label_y;
-	const PAD = 3;
-	const SPACING = 2;
+	const PAD = 2;
+	const SPACING = -7;
+	const PADDING = 40;
 
 	function initialize() {
 		DataField.initialize();
@@ -33,10 +35,16 @@ class StandardDataField extends WatchUi.DataField {
 		_value_font = _value_font_smallest;
 		var bigger;
 		for (bigger = 0; bigger < _value_font_biggest - _value_font_smallest; bigger ++) {
-			System.println("fontheight " + bigger + ": " + Graphics.getFontHeight(_value_font + bigger));
-			if (!(Graphics.getFontHeight(_value_font + bigger) < max_value_height)) {
+			var fh = Graphics.getFontHeight(_value_font + bigger);
+			var fw = dc.getTextWidthInPixels(_ref_value, _value_font + bigger);
+			System.println("fontheight " + bigger + ": " + fh);
+			System.println("fontwidth " + bigger + ": " + fw);
+			if ((fh > max_value_height) || (fw + PADDING > dc.getWidth())) {
 				break;
 			}
+		}
+		if (bigger > 0) {		// breaks when too big
+			bigger --;
 		}
 		System.println("increasing value font by " + bigger);
 		_value_font += bigger;
