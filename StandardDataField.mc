@@ -64,8 +64,9 @@ class StandardDataField extends WatchUi.DataField {
 			fgc = Graphics.COLOR_WHITE;
 		}
 		dc.setColor(fgc, bgc);
-
 		dc.clear();
+
+		dc.setColor(fgc, Graphics.COLOR_TRANSPARENT);
 		dc.drawText(_value_x, _value_y, _value_font, value, Graphics.TEXT_JUSTIFY_CENTER);
 		dc.drawText(_label_x, _label_y, _label_font, label, Graphics.TEXT_JUSTIFY_CENTER);
 
