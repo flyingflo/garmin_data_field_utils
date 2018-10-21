@@ -3,36 +3,39 @@ using Toybox.Graphics;
 
 module DataFieldUtils {
 class GraphDataField extends StandardDataField {
-	var _hist;
-	var _histlen;
+	// internal
+	hidden var _hist;
+	hidden var _histlen;
 	hidden var _y_scale;
-//	hidden var _y_off;
 	hidden var _x_scale;
 
-	hidden var _y_min;
-	hidden var _y_max;
-	hidden var _y_thresh;
-	hidden var _color_lo;
-	hidden var _color_hi;
-	hidden var _color_ov;
+	// settings
+	var _y_min;
+	var _y_max;
+	var _y_thresh;
+	var _colors_dark;
+	var _colors_bright;
+	var _scale_x;
 
+	// status
 	var _alive;
-
+	var _lcol; 	//cached graph line color to reduce setColor calls
 
 	function initialize() {
 		StandardDataField.initialize();
 		_alive = false;
-		_histlen = 300;
-		_y_min = 100;
-		_y_max = 500;
-		_y_thresh = 300 - _y_min;
-		_color_lo = Graphics.COLOR_BLUE;
-		_color_hi = Graphics.COLOR_ORANGE;
-		_color_ov = Graphics.COLOR_RED;
-
+//		_histlen = 210;
+//		_y_min = 100;
+//		_y_max = 500;
+//		_y_thresh = 300 - _y_min;
+//		_color_lo = Graphics.COLOR_GREEN;
+//		_color_hi = Graphics.COLOR_BLUE;
+//		_color_ov = Graphics.COLOR_RED;
+//		_scale_x = false;
+//
 		fetchSettings();
 
-		_hist = new RingFifo(_histlen, 0);
+		_hist = new RingFifo(_histlen, -_y_min);	// we use a fixed offset
 	}
 
 	function onLayout(dc) {
@@ -60,6 +63,15 @@ class GraphDataField extends StandardDataField {
 		_hist.push_pop(val - _y_min);	// calculate offset here: only once per value
 	}
 
+	function gethist(i) {
+		// because we save values with an offset, we have to fix this for callers
+		return _hist.at(i) + _y_min;
+	}
+
+	function gethistlen() {
+		return _histlen;
+	}
+
 	function onUpdate(dc) {
 		var bgc = getBackgroundColor();
 		var fgc = Graphics.COLOR_BLACK;
@@ -75,34 +87,68 @@ class GraphDataField extends StandardDataField {
 		}
 		drawText(dc, fgc);
 
+        // Call parent's onUpdate(dc) to redraw the layout
+//        View.onUpdate(dc);
 		return true;
 	}
 
 	function drawGraph(dc, fgc) {
+		var start = System.getTimer();
 		var h = dc.getHeight();
 		var w = dc.getWidth();
 		var yg;
 		var y;
 		var x;
+		var histoffs = _histlen - w ;
 
-		var bgc = Graphics.COLOR_TRANSPARENT;
-		for (var xg = 0; xg < w; xg++) {
-			x = scalexg(xg);
-			y = _hist.at(x);
+		var colors;
+		if (fgc == Graphics.COLOR_WHITE) {
+			colors = _colors_dark;
+		} else {
+			colors = _colors_bright;
+		}
+		var bgc = colors[0];
+//		var bm = new Graphics.BufferedBitmap({:width => w, :height => h, :palette => colors});
+		dc.setColor(bgc, bgc);
+		dc.clear();
+		var dcbm = dc; //bm.getDc();
+		dcbm.setPenWidth(1);
+		_lcol = bgc;
+		var lcolnext;
+		for (var xg = 0; xg < w; xg+= 1) {
+			if (_scale_x) {			// scale to fit field size
+				y = interp(xg);
+			} else if (histoffs + xg < 0 ) {	// one pixel per history record
+				y = 0;
+			} else {		// pad with empty space if history is too short
+				y = _hist.at(histoffs + xg);	// skip to history start
+			}
 			yg = scaley(y);
 			if (y <= 0) { // below thresh
 				continue;
 			}
 			if (y < _y_thresh) {
-				dc.setColor(_color_lo, bgc);
+				lcolnext = colors[1];
 			} else if (y < _y_max) {
-				dc.setColor(_color_hi, bgc);
+				lcolnext = colors[2];
 			} else {
-				dc.setColor(_color_ov, bgc);
+				lcolnext = colors[3];
 				yg = h;
 			}
-			dc.drawLine(xg, h, xg, h-yg);
+			setColorCached(dcbm, lcolnext, bgc);
+			dcbm.drawLine(xg, h, xg, h-yg);
 		}
+		var clock = System.getTimer() - start;
+//		dc.drawBitmap(0,0, bm);
+		// takes about 250ms on the Edge 820!
+//		value = clock;
+	}
+	function setColorCached(dc, fc, bc) {
+		if (fc == _lcol) {
+			return;
+		}
+		dc.setColor(fc, bc);
+		_lcol = fc;
 	}
 
 	function drawText(dc, fgc) {
@@ -114,12 +160,22 @@ class GraphDataField extends StandardDataField {
 		dc.drawText(_value_x, _value_y, _value_font, value, Graphics.TEXT_JUSTIFY_CENTER);
 	}
 
-	function scalexg(xg) {
-		return (xg * _x_scale).toNumber();
+	function interp(xg) {
+		var x = (xg * _x_scale);
+		var x0 = x.toNumber();
+		var x1 = x0 + 1;
+		var y0 = _hist.at(x0);
+		var y1 = _hist.at(x1);
+//		return y0 * (x1 - x) + y1 * (x - x0);	// linear interpolation
+		if (y0 > y1) {		// deliver maximum
+			return y0;
+		} else {
+			return y1;
+		}
 	}
 
 	function scaley(y) {
-		return y / _y_scale;
+		return (y / _y_scale).toNumber();
 	}
 
 
