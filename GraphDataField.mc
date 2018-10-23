@@ -135,18 +135,19 @@ class GraphDataField extends StandardDataField {
 		for (var xg = 0; xg < w; xg+= 1) {
 			if (_scale_x) {			// scale to fit field size
 				y = interp(xg);
-			} else if (histoffs + xg < 0 ) {	// one pixel per history record
+			} else if (histoffs + xg < 0 ) {	// pad with empty space if history is too short
 				y = 0;
-			} else {		// pad with empty space if history is too short
+			} else {		// one pixel per history record
 				y = _hist.at(histoffs + xg);	// skip to history start
 			}
+
 			yg = scaley(y);
 			if (y <= 0) { // below thresh
 				continue;
 			}
 			if (y < _y_thresh) {
 				lcolnext = colors[1];
-			} else if (y < _y_max) {
+			} else if (y < _y_max - _y_min) {
 				lcolnext = colors[2];
 			} else {
 				lcolnext = colors[3];
