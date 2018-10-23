@@ -16,10 +16,12 @@ class GraphDataField extends StandardDataField {
 	var _colors_dark;
 	var _colors_bright;
 	var _scale_x;
+	var _demo = false;	// show demo values
 
 	// status
 	var _alive;
 	var _lcol; 	//cached graph line color to reduce setColor calls
+	var _demo_val;
 
 	function initialize() {
 		StandardDataField.initialize();
@@ -33,7 +35,9 @@ class GraphDataField extends StandardDataField {
 //		_color_ov = Graphics.COLOR_RED;
 //		_scale_x = false;
 //
+		_demo = false;
 		fetchSettings();
+		_demo_val = _y_min;
 		if (_histlen == null) {
 			_histlen = System.getDeviceSettings().screenWidth;
 		}
@@ -55,6 +59,14 @@ class GraphDataField extends StandardDataField {
 	}
 
 	function pushGraph(val) {
+		if (_demo) {
+			val = _demo_val;
+			_demo_val += 3;
+			if (_demo_val > _y_max + 50) {
+				_demo_val = _y_min;
+			}
+		}
+
 		// just do nothing if we never get a value
 		if (val != 0) {
 			_alive = true;
@@ -157,6 +169,10 @@ class GraphDataField extends StandardDataField {
 	}
 
 	function drawText(dc, fgc) {
+		if (_demo) {
+			value = _demo_val;
+		}
+
 		var bgc = Graphics.COLOR_TRANSPARENT;
 
 		dc.setColor(Graphics.COLOR_LT_GRAY, bgc);
