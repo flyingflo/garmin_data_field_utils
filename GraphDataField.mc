@@ -8,7 +8,7 @@ class GraphDataField extends StandardDataField {
 	hidden var _histlen;
 	hidden var _y_scale;
 	hidden var _x_scale;
-	hidden var _graphbuffers;
+	hidden var _graphbuffer;
 	hidden var _tick;
 
 	// settings
@@ -44,7 +44,6 @@ class GraphDataField extends StandardDataField {
 		}
 		System.println("GraphDataField init with " + _histlen);
 		_hist = new RingFifo(_histlen, -_y_min);	// we use a fixed offset
-		_graphbuffers = new[1];
 		_tick = 0;
 	}
 
@@ -126,19 +125,19 @@ class GraphDataField extends StandardDataField {
 		var colors = _colors[cmode];
 		var bgc = colors[0];
 
-		var bm = _graphbuffers[0];
 		var xg;
-		if (_graphbuffers[0] == null || _graphbuffers[0].getCmode() != cmode) {
-			_graphbuffers[0] = new GraphBuffer(dc.getWidth(), dc.getHeight(), _tick, _colors, cmode);
-			bm = _graphbuffers[0];
+		if (_graphbuffer == null ||
+				_graphbuffer.getCmode() != cmode ||
+				_graphbuffer.getHeight() != dc.getHeight()) {
+			_graphbuffer = new GraphBuffer(dc.getWidth(), dc.getHeight(), _tick, _colors, cmode);
 			xg = 0;
 			System.println("new bitmap");
 		} else {
-			xg = bm.shift(_tick);
+			xg = _graphbuffer.shift(_tick);
 			System.println("shift bitmap " + xg);
 		}
 
-		var dcbm = bm.getDc();
+		var dcbm = _graphbuffer.getDc();
 		var h = dcbm.getHeight();
 		var w = dcbm.getWidth();
 		var histoffs = _histlen - w ;
@@ -171,7 +170,7 @@ class GraphDataField extends StandardDataField {
 			dcbm.setColor(lcolnext, bgc);
 			dcbm.drawLine(xg, h, xg, h-yg);
 		}
-		dc.drawBitmap(dc.getWidth() - w, 0, bm);	// allow for a wider buffer than the field
+		dc.drawBitmap(dc.getWidth() - w, 0, _graphbuffer);	// allow for a wider buffer than the field
 		var clock = System.getTimer() - start;
 		// takes about 250ms on the Edge 820!
 		label = clock;
