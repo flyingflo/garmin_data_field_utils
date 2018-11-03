@@ -8,13 +8,14 @@ class GraphDataField extends StandardDataField {
 	hidden var _histlen;
 	hidden var _y_scale;
 	hidden var _x_scale;
+	hidden var _graphbuffers;
+	hidden var _tick;
 
 	// settings
 	var _y_min;
 	var _y_max;
 	var _y_thresh;
-	var _colors_dark;
-	var _colors_bright;
+	var _colors = { :dark => null, :bright => null};
 	var _scale_x;
 	var _demo = false;	// show demo values
 
@@ -35,7 +36,7 @@ class GraphDataField extends StandardDataField {
 //		_color_ov = Graphics.COLOR_RED;
 //		_scale_x = false;
 //
-		_demo = false;
+//		_demo = true;
 		fetchSettings();
 		_demo_val = _y_min;
 		if (_histlen == null) {
@@ -43,6 +44,8 @@ class GraphDataField extends StandardDataField {
 		}
 		System.println("GraphDataField init with " + _histlen);
 		_hist = new RingFifo(_histlen, -_y_min);	// we use a fixed offset
+		_graphbuffers = new[1];
+		_tick = 0;
 	}
 
 	function onLayout(dc) {
@@ -76,6 +79,7 @@ class GraphDataField extends StandardDataField {
 		}
 		// scaling must be done at each update, because the layout can change anytime
 		_hist.push_pop(val - _y_min);	// calculate offset here: only once per value
+		_tick++;
 	}
 
 	function gethist(i) {
@@ -109,30 +113,41 @@ class GraphDataField extends StandardDataField {
 
 	function drawGraph(dc, fgc) {
 		var start = System.getTimer();
-		var h = dc.getHeight();
-		var w = dc.getWidth();
 		var yg;
 		var y;
 		var x;
-		var histoffs = _histlen - w ;
 
-		var colors;
+		var cmode;
 		if (fgc == Graphics.COLOR_WHITE) {
-			colors = _colors_dark;
+			cmode = :dark;
 		} else {
-			colors = _colors_bright;
+			cmode = :bright;
 		}
+		var colors = _colors[cmode];
 		var bgc = colors[0];
-//		var bm = new Graphics.BufferedBitmap({:width => w, :height => h, :palette => colors});
-		dc.setColor(bgc, bgc);
-		dc.clear();
-		var dcbm = dc; //bm.getDc();
+
+		var bm = _graphbuffers[0];
+		var xg;
+		if (_graphbuffers[0] == null || _graphbuffers[0].getCmode() != cmode) {
+			_graphbuffers[0] = new GraphBuffer(dc.getWidth(), dc.getHeight(), _tick, _colors, cmode);
+			bm = _graphbuffers[0];
+			xg = 0;
+			System.println("new bitmap");
+		} else {
+			xg = bm.shift(_tick);
+			System.println("shift bitmap " + xg);
+		}
+
+		var dcbm = bm.getDc();
+		var h = dcbm.getHeight();
+		var w = dcbm.getWidth();
+		var histoffs = _histlen - w ;
 		dcbm.setPenWidth(1);
 
 		_lcol = bgc;
 		var lcolnext;
 
-		for (var xg = 0; xg < w; xg+= 1) {
+		for (; xg < w; xg+= 1) {
 			if (_scale_x) {			// scale to fit field size
 				y = interp(xg);
 			} else if (histoffs + xg < 0 ) {	// pad with empty space if history is too short
@@ -153,13 +168,13 @@ class GraphDataField extends StandardDataField {
 				lcolnext = colors[3];
 				yg = h;
 			}
-			setColorCached(dcbm, lcolnext, bgc);
+			dcbm.setColor(lcolnext, bgc);
 			dcbm.drawLine(xg, h, xg, h-yg);
 		}
+		dc.drawBitmap(dc.getWidth() - w, 0, bm);	// allow for a wider buffer than the field
 		var clock = System.getTimer() - start;
-//		dc.drawBitmap(0,0, bm);
 		// takes about 250ms on the Edge 820!
-//		value = clock;
+		label = clock;
 	}
 	function setColorCached(dc, fc, bc) {
 		if (fc == _lcol) {
@@ -201,5 +216,63 @@ class GraphDataField extends StandardDataField {
 	}
 
 
+}
+
+class GraphBuffer extends Graphics.BufferedBitmap {
+	var _t;
+	var _w;
+	var _h;
+	var _tscale;
+	var _fgc;
+	var _bgc;
+	var _cmode;
+	function initialize(w, h, t, colors, cmode) {
+		BufferedBitmap.initialize({:width => w, :height => h, :palette => colors[cmode]});
+		_t = t;
+		_w = w;
+		_h = h;
+		_cmode = cmode;
+		_tscale = 1;
+		setColor(getPalette()[0], getPalette()[0]);
+		getDc().clear();
+	}
+
+	function setColor(fgc, bgc) {
+		// cache to save calls to real setColor
+		System.println("setColor cache " + fgc +","+ bgc);
+		if (fgc == _fgc && bgc == _bgc) {
+			return;
+		}
+		_fgc = fgc;
+		_bgc = bgc;
+		getDc().setColor(fgc, bgc);
+	}
+
+	function shift(now) {
+		var dc = getDc();
+		var s = (_t - now) * _tscale;
+		dc.setColor(getPalette()[0], getPalette()[0]);
+		if (s <= -_w) {	// no useful content left, need a full redraw
+			System.println("bitmap expired");
+			dc.clear();
+			_t = now;
+			return 0;
+		}
+		dc.drawBitmap(s, 0, self);
+		dc.drawRectangle(_w + s, 0, -s, _h);
+		_t = now;
+		return _w + s;
+	}
+
+	function getCmode() {
+		return _cmode;
+	}
+
+	function getWidth() {
+		return _w;
+	}
+	function getHeight() {
+		return _h;
+	}
 }
 }
