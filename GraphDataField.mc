@@ -18,25 +18,16 @@ class GraphDataField extends StandardDataField {
 	var _colors = { :dark => null, :bright => null};
 	var _scale_x;
 	var _demo = false;	// show demo values
+	var _timing = false; 	// show draw timing
 
 	// status
 	var _alive;
-	var _lcol; 	//cached graph line color to reduce setColor calls
 	var _demo_val;
 
 	function initialize() {
 		StandardDataField.initialize();
 		_alive = false;
-//		_histlen = 210;
-//		_y_min = 100;
-//		_y_max = 500;
-//		_y_thresh = 300 - _y_min;
-//		_color_lo = Graphics.COLOR_GREEN;
-//		_color_hi = Graphics.COLOR_BLUE;
-//		_color_ov = Graphics.COLOR_RED;
-//		_scale_x = false;
-//
-//		_demo = true;
+		_graphbuffer = null;
 		fetchSettings();
 		_demo_val = _y_min;
 		if (_histlen == null) {
@@ -143,9 +134,6 @@ class GraphDataField extends StandardDataField {
 		var histoffs = _histlen - w ;
 		dcbm.setPenWidth(1);
 
-		_lcol = bgc;
-		var lcolnext;
-
 		for (; xg < w; xg+= 1) {
 			if (_scale_x) {			// scale to fit field size
 				y = interp(xg);
@@ -160,27 +148,21 @@ class GraphDataField extends StandardDataField {
 				continue;
 			}
 			if (y < _y_thresh) {
-				lcolnext = colors[1];
+				dcbm.setColor(colors[1], bgc);
 			} else if (y < _y_max - _y_min) {
-				lcolnext = colors[2];
+				dcbm.setColor(colors[2], bgc);
 			} else {
-				lcolnext = colors[3];
+				dcbm.setColor(colors[3], bgc);
 				yg = h;
 			}
-			dcbm.setColor(lcolnext, bgc);
 			dcbm.drawLine(xg, h, xg, h-yg);
 		}
 		dc.drawBitmap(dc.getWidth() - w, 0, _graphbuffer);	// allow for a wider buffer than the field
 		var clock = System.getTimer() - start;
 		// takes about 250ms on the Edge 820!
-		label = clock;
-	}
-	function setColorCached(dc, fc, bc) {
-		if (fc == _lcol) {
-			return;
+		if(_timing) {
+			label = clock;
 		}
-		dc.setColor(fc, bc);
-		_lcol = fc;
 	}
 
 	function drawText(dc, fgc) {
@@ -232,19 +214,7 @@ class GraphBuffer extends Graphics.BufferedBitmap {
 		_h = h;
 		_cmode = cmode;
 		_tscale = 1;
-		setColor(getPalette()[0], getPalette()[0]);
 		getDc().clear();
-	}
-
-	function setColor(fgc, bgc) {
-		// cache to save calls to real setColor
-		System.println("setColor cache " + fgc +","+ bgc);
-		if (fgc == _fgc && bgc == _bgc) {
-			return;
-		}
-		_fgc = fgc;
-		_bgc = bgc;
-		getDc().setColor(fgc, bgc);
 	}
 
 	function shift(now) {
