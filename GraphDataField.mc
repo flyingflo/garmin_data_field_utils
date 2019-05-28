@@ -64,7 +64,7 @@ class GraphDataField extends StandardDataField {
 		if (val != 0) {
 			_alive = true;
 		}
-		if (val == 0 && !_alive) {
+		if (!_alive) {
 			return;
 		}
 		// scaling must be done at each update, because the layout can change anytime
@@ -228,7 +228,7 @@ class GraphBuffer extends Graphics.BufferedBitmap {
 			return 0;
 		}
 		dc.drawBitmap(s, 0, self);
-		dc.drawRectangle(_w + s, 0, -s, _h);
+		dc.fillRectangle(_w + s, 0, -s, _h);
 		_t = now;
 		return _w + s;
 	}
