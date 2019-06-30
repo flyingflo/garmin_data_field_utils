@@ -196,6 +196,15 @@ class GraphDataField extends StandardDataField {
 		return (y / _y_scale).toNumber();
 	}
 
+	// Get a color code number from a hex string setting.
+	// Return the defaultValue on invalid inputs.
+	function getColorSetting(name, defaultValue) {
+		var v = Application.Properties.getValue(name).toNumberWithBase(16);
+		if (v == null) {
+			return defaultValue;
+		}
+		return v;
+	}
 
 }
 
@@ -243,5 +252,6 @@ class GraphBuffer extends Graphics.BufferedBitmap {
 	function getHeight() {
 		return _h;
 	}
+
 }
 }
