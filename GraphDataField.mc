@@ -54,7 +54,7 @@ class GraphDataField extends StandardDataField {
 	function pushGraph(val) {
 		if (_demo) {
 			val = _demo_val;
-			_demo_val += 3;
+			_demo_val += (_y_max - _y_min) / 100 +1;
 			if (_demo_val > _y_max + 50) {
 				_demo_val = _y_min;
 			}
