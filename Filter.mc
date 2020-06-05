@@ -1,7 +1,6 @@
 using Toybox.Test;
 
 module DataFieldUtils {
-(:filter)
 class AvgFilter {
 	/* Recursive moving average filter.
 	*/

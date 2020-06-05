@@ -2,9 +2,7 @@
 using Toybox.Graphics;
 
 module DataFieldUtils {
-(:graph)
-module Graph {
-class GraphDataField extends Base.StandardDataField {
+class GraphDataField extends StandardDataField {
 	// internal
 	hidden var _hist;
 	hidden var _histlen;
@@ -255,6 +253,5 @@ class GraphBuffer extends Graphics.BufferedBitmap {
 		return _h;
 	}
 
-}
 }
 }
