@@ -70,7 +70,6 @@ class StandardDataField extends WatchUi.DataField {
 	}
 
 	function onUpdate(dc) {
-		System.println("onUpdate " + dc.getWidth() + "x" + dc.getHeight());
 		var bgc = getBackgroundColor();
 		var fgc = Graphics.COLOR_BLACK;
 		if (bgc == Graphics.COLOR_BLACK) {
