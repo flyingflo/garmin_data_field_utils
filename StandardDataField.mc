@@ -1,4 +1,5 @@
 using Toybox.WatchUi;
+using Toybox.System;
 
 module DataFieldUtils {
 class StandardDataField extends WatchUi.DataField {
@@ -14,24 +15,34 @@ class StandardDataField extends WatchUi.DataField {
 	var _value_y;
 	var _label_x;
 	var _label_y;
-	const PAD = 2;
-	const SPACING = -7;
-	const PADDING = 40;
 
 	function initialize() {
 		DataField.initialize();
 	}
 
 	function onLayout(dc) {
+		var PAD;
+		var SPACING;
+		var PADDING;
+		if (System.getDeviceSettings().screenShape == System.SCREEN_SHAPE_ROUND) {
+			PAD = 5;
+			SPACING = -23;
+			PADDING = 12;
+		} else {
+			PAD = 2;
+			SPACING = -7;
+			PADDING = 40;
+		}
 		System.println("onLayout " + dc.getWidth() + "x" + dc.getHeight());
 		DataField.onLayout(dc);
 		_value_x = dc.getWidth() / 2;
 		_label_x = _value_x;
 		_label_y = Graphics.getFontDescent(_label_font);
 		// find the biggest possible font for the value
-		var max_value_height = dc.getHeight() - Graphics.getFontHeight(_label_font) - PAD - SPACING;
+		var label_font_height = Graphics.getFontHeight(_label_font);
+		var max_value_height = dc.getHeight() - label_font_height - PAD - SPACING;
 
-		System.println("max_value_height " + max_value_height);
+		System.println("max_value_height " + max_value_height + " label font height " + label_font_height);
 		_value_font = _value_font_smallest;
 		var bigger;
 		for (bigger = 0; bigger < _value_font_biggest - _value_font_smallest; bigger ++) {
