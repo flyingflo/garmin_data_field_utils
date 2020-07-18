@@ -29,7 +29,7 @@ class StandardDataField extends WatchUi.DataField {
 			SPACING = -23;
 			PADDING = 12;
 		} else {
-			PAD = 2;
+			PAD = -5;
 			SPACING = -7;
 			PADDING = 40;
 		}
@@ -57,12 +57,14 @@ class StandardDataField extends WatchUi.DataField {
 		if (bigger > 0) {		// breaks when too big
 			bigger --;
 		}
-		System.println("increasing value font by " + bigger);
+		System.println("increasing value font by " + bigger + " height " + Graphics.getFontHeight(_value_font));
 		_value_font += bigger;
 
 		_value_y = dc.getHeight() - Graphics.getFontAscent(_value_font) - PAD;
-		if (max_value_height > Graphics.getFontHeight(_value_font)) {
+		System.println("value y " + _value_y);
+		if (max_value_height > Graphics.getFontHeight(_value_font) + 3) {
 			_value_y -= (max_value_height - Graphics.getFontHeight(_value_font)) / 2; // shift up to center in free space
+			System.println("centering value y to " + _value_y);
 		}
 		return true;
 	}
