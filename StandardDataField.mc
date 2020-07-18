@@ -2,6 +2,8 @@ using Toybox.WatchUi;
 using Toybox.System;
 
 module DataFieldUtils {
+(:base)
+module Base{
 class StandardDataField extends WatchUi.DataField {
 	var value = "";
 	var label = "";
@@ -85,5 +87,6 @@ class StandardDataField extends WatchUi.DataField {
 		return true;
 	}
 
+}
 }
 }

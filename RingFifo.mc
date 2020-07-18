@@ -1,7 +1,7 @@
 using Toybox.Test;
 
 module DataFieldUtils {
-
+(:filter)
 class RingFifo {
 
 	hidden var _buf;
