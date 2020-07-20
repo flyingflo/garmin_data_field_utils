@@ -127,7 +127,7 @@ class GraphDataField extends Base.StandardDataField {
 			System.println("new bitmap");
 		} else {
 			xg = _graphbuffer.shift(_tick);
-			System.println("shift bitmap " + xg);
+//			System.println("shift bitmap " + xg);
 		}
 
 		var dcbm = _graphbuffer.getDc();
